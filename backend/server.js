@@ -11,7 +11,6 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const app = express();
-app.set("trust proxy", 1);
 const PORT = process.env.PORT || 5000;
 
 // Middlewares
@@ -25,8 +24,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: false, // Using http in local dev
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   }),
@@ -51,16 +49,6 @@ app.get("/api/status", (req, res) => {
     timestamp: new Date(),
   });
 });
-
-// Serve React build in production
-if (process.env.NODE_ENV === "production") {
-  const frontendPath = path.join(__dirname, "../frontend/dist");
-  app.use(express.static(frontendPath));
-
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(frontendPath, "index.html"));
-  });
-}
 
 // Start Database connection then listen on port
 connectDB()
